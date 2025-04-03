@@ -25,6 +25,11 @@ on:
           required: true
           type: choice
           options: ['3.8', '3.9']
+        artifact:
+          description: "Select an artifact to deploy"
+          required: true
+          type: choice
+          options: ['windows-3.8', 'windows-3.9', 'ubuntu-3.8', 'ubuntu-3.9']
 
 
 concurrency:
@@ -81,21 +86,21 @@ jobs:
       - name: Upload python artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: python-artifacts-${{ matrix.OsType }}-${{ matrix.PythonVersion }}
+          name: python-artifacts-${{  inputs.artifact }}
           path: .
 
       - name: Upload helm artifacts
         if: github.ref_name == 'main'
         uses: actions/upload-artifact@v4
         with:
-          name: helm-artifacts-${{ matrix.OsType }}-${{ matrix.PythonVersion }}
+          name: helm-artifacts-${{ inputs.artifact }}
           path: ${{ github.workspace }}/helm-charts
 
       - name: Upload kind cluster artifact
         if: github.ref_name == 'main'
         uses: actions/upload-artifact@v4
         with:
-          name: kind-cluster-${{ matrix.OsType }}-${{ matrix.PythonVersion }}
+          name: kind-cluster-${{ inputs.artifact }}
           path: ${{ github.workspace }}/cluster.yml
 
   docker-ci:
@@ -108,7 +113,7 @@ jobs:
     - uses: actions/download-artifact@v4
       name: Download python artifacts
       with:
-        name: python-artifacts-${{ matrix.OsType }}-${{ matrix.PythonVersion }}
+        name: python-artifacts-${{ inputs.artifact }}
         path: .
 
     - name: Login to Docker Hub
@@ -133,7 +138,7 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
-        name: helm-artifacts-${{ env.mainOS }}-${{ env.mainPythonVersion }}
+        name: helm-artifacts-${{ inputs.artifact }}
         path: .
 
     - name: Set Up Helm
